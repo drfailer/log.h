@@ -10,7 +10,7 @@
 #define LOG_TODO
 
 // info groups active
-#define INFO_GRPS
+#define INFO_GRPS 0
 
 // colors and metafunctions
 #if defined(LOG)
@@ -41,13 +41,13 @@ struct LOG_INFO_ID_ACTIVE<Id, LOG_GRP_LST<Head, Ids...>> {
 // INFO_GRP takes the id of a group, only the groups that are in INFO_GRPS are
 // displayed
 #if defined(LOG) && defined(LOG_INFO)
-#define INFO(msg) std::cout << BBLU "INFO: " CRESET msg << std::endl;
 #define INFO_GRP(msg, id)                                                      \
   {                                                                            \
     if constexpr (LOG_INFO_ID_ACTIVE<id, LOG_GRP_LST<INFO_GRPS>>::value) {     \
       std::cout << BBLU "INFO: " CRESET msg << std::endl;                      \
     }                                                                          \
   }
+#define INFO(msg) INFO_GRP(msg, 0)
 #else
 #define INFO(msg)
 #define INFO_GRP(msg, id)

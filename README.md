@@ -16,14 +16,15 @@ INFO_GRP("info group message", 1)
 
 ## Info groups
 
-To toggle groups, add the ids in the `INFO_GRP` macro.
+To toggle groups, add the ids in the `INFO_GRP` macro. 0 is the id of the global
+group (`INFO` macro).
 
 ```cpp
-#define INFO_GRPS 0, 2
+#define INFO_GRPS 0, 1, 3
 
-INFO_GRP("group 0 is displayed", 0)
-INFO_GRP("group 1 is not displayed", 1)
-INFO_GRP("group 2 is displayed", 2)
+INFO_GRP("group 1 is displayed", 1)
+INFO_GRP("group 2 is not displayed", 2)
+INFO_GRP("group 3 is displayed", 3)
 ```
 
 ## Log levels
