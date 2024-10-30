@@ -11,6 +11,13 @@
 #define LOG_TODO
 #define LOG_DBG
 
+// if defined, the log module will contain functions to print containers
+// (requires C++20)
+//#define DBG_CONTAINERS
+#ifdef DBG_CONTAINERS
+#include <tuple>
+#endif
+
 // info groups active
 #define INFO_GRPS 0, 1
 
@@ -39,8 +46,59 @@ struct isInfoIdActive<Id, GroupList<Head, Ids...>> {
       Id == Head || isInfoIdActive<Id, GroupList<Ids...>>::value;
 };
 
+#ifdef DBG_CONTAINERS
+
+template <typename T>
+concept Iterable = requires(T t) {
+  t.cbegin();
+  t.cend();
+  typename T::const_iterator;
+};
+
+template <typename T>
+concept TupleLike = requires(T obj) {
+  std::get<0>(obj);
+  typename std::tuple_element_t<0, T>;
+  std::tuple_size_v<T>;
+};
+
+template <Iterable Container>
+std::ostream &operator<<(std::ostream &os, Container const &container);
+
+template <typename Tuple, size_t... Idx>
+std::ostream &printTuple(std::ostream &os, Tuple const &tuple,
+                         std::index_sequence<Idx...>) {
+  return ((os << (Idx > 0 ? ", " : "") << std::get<Idx>(tuple)), ...);
+}
+
+#endif // DBG_CONTAINERS
+
 } // namespace logh
-#endif
+
+#ifdef DBG_CONTAINERS
+
+template <template <typename...> class Tuple, typename... Types>
+  requires logh::TupleLike<Tuple<Types...>>
+std::ostream &operator<<(std::ostream &os, Tuple<Types...> const &tuple) {
+  os << "<";
+  logh::printTuple(os, tuple, std::make_index_sequence<(sizeof...(Types))>());
+  return os << ">";
+}
+
+template <logh::Iterable Container>
+std::ostream &operator<<(std::ostream &os, Container const &container) {
+  auto it = container.cbegin();
+
+  os << "[" << *it++;
+  for (; it != container.cend(); it++) {
+    os << ", " << *it;
+  }
+  return os << "]" << std::endl;
+}
+
+#endif // DBG_CONTAINERS
+
+#endif // defined(LOG)
 
 // INFO is displayed all the time when LOG_INFO is defined
 // INFO_GRP takes the id of a group, only the groups that are in INFO_GRPS are
