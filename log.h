@@ -12,7 +12,7 @@
 #define LOG_DBG
 
 // info groups active
-#define INFO_GRPS 0
+#define INFO_GRPS 0, 1
 
 // colors and metafunctions
 #if defined(LOG)
@@ -48,7 +48,7 @@ struct isInfoIdActive<Id, GroupList<Head, Ids...>> {
 #if defined(LOG) && defined(LOG_INFO)
 #define INFO_GRP(msg, id)                                                      \
   if constexpr (logh::isInfoIdActive<id, logh::GroupList<INFO_GRPS>>::value) { \
-    std::cout << BBLU "INFO: " CRESET << msg << std::endl;                     \
+    std::cout << BBLU "INFO[" #id "]: " CRESET << msg << std::endl;            \
   }
 #define INFO(msg) INFO_GRP(msg, 0)
 #else
