@@ -1,7 +1,16 @@
+/*
+ * log.h is a minimalist library that provides various log functions for people
+ * who like debug prints. Modify this file directly to customize log levels.
+ */
+
 #ifndef LOG_H
 #define LOG_H
 #include <iostream>
 #include <type_traits>
+
+/* config *********************************************************************/
+
+// use preprocessor constants to toggle features
 
 // log levels (comment to deactivate)
 #define LOG
@@ -13,13 +22,14 @@
 
 // if defined, the log module will contain functions to print containers
 // (requires C++20)
-//#define DBG_CONTAINERS
-#ifdef DBG_CONTAINERS
-#include <tuple>
-#endif
+// #define DBG_CONTAINERS
 
-// info groups active
+// info groups active (groups that are in the list are activated)
+// note: the identifier of the group is displayed in the message, use a custom
+// define / enum when using the INFO_GRP macro if you want a more explicit name.
 #define INFO_GRPS 0, 1
+
+/******************************************************************************/
 
 // colors and metafunctions
 #if defined(LOG)
@@ -29,6 +39,10 @@
 #define BBLU "\033[1;34m"
 #define MAG "\033[0;35m"
 #define CRESET "\033[0m"
+
+#ifdef DBG_CONTAINERS
+#include <tuple> // required for std::get
+#endif
 
 namespace logh {
 
