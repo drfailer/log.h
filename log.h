@@ -21,8 +21,8 @@
 #define LOG_DBG
 
 // if defined, the log module will contain functions to print containers
-// (requires C++20)
-// #define DBG_CONTAINERS
+// (requires C++20 and usable only with the DBG macro)
+#define DBG_CONTAINERS
 
 // info groups active (groups that are in the list are activated)
 // note: the identifier of the group is displayed in the message, use a custom
@@ -62,12 +62,18 @@ struct isInfoIdActive<Id, GroupList<Head, Ids...>> {
 
 #ifdef DBG_CONTAINERS
 
+template <typename T> struct clear {
+  using type = std::remove_const_t<std::remove_reference_t<T>>;
+};
+
+template <typename T> using clear_t = clear<T>::type;
+
 template <typename T>
-concept Iterable = requires(T t) {
+concept Iterable = requires(clear_t<T> t) {
   t.cbegin();
   t.cend();
   typename T::const_iterator;
-};
+} && !std::is_same_v<clear_t<T>, std::string>;
 
 template <typename T>
 concept TupleLike = requires(T obj) {
@@ -85,21 +91,15 @@ std::ostream &printTuple(std::ostream &os, Tuple const &tuple,
   return ((os << (Idx > 0 ? ", " : "") << std::get<Idx>(tuple)), ...);
 }
 
-#endif // DBG_CONTAINERS
-
-} // namespace logh
-
-#ifdef DBG_CONTAINERS
-
 template <template <typename...> class Tuple, typename... Types>
-  requires logh::TupleLike<Tuple<Types...>>
+  requires TupleLike<Tuple<Types...>>
 std::ostream &operator<<(std::ostream &os, Tuple<Types...> const &tuple) {
   os << "<";
-  logh::printTuple(os, tuple, std::make_index_sequence<(sizeof...(Types))>());
+  printTuple(os, tuple, std::make_index_sequence<(sizeof...(Types))>());
   return os << ">";
 }
 
-template <logh::Iterable Container>
+template <Iterable Container>
 std::ostream &operator<<(std::ostream &os, Container const &container) {
   auto it = container.cbegin();
 
@@ -111,6 +111,8 @@ std::ostream &operator<<(std::ostream &os, Container const &container) {
 }
 
 #endif // DBG_CONTAINERS
+
+} // namespace logh
 
 #endif // defined(LOG)
 
@@ -153,6 +155,7 @@ std::ostream &operator<<(std::ostream &os, Container const &container) {
 #if defined(LOG) && defined(LOG_DBG)
 #define DBG(var)                                                               \
   if constexpr (!std::is_same_v<const char *, decltype(var)>) {                \
+    using logh::operator<<;                                                    \
     std::cout << MAG "DBG: " CRESET #var " = " << var << std::endl;            \
   } else { /* if not variable */                                               \
     std::cout << MAG "DBG: " CRESET << var << std::endl;                       \
