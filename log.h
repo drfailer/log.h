@@ -22,7 +22,7 @@
 
 // if defined, the log module will contain functions to print containers
 // (requires C++20 and usable only with the DBG macro)
-#define DBG_CONTAINERS
+// #define DBG_CONTAINERS
 
 // info groups active (groups that are in the list are activated)
 // note: the identifier of the group is displayed in the message, use a custom
@@ -107,7 +107,7 @@ std::ostream &operator<<(std::ostream &os, Container const &container) {
   for (; it != container.cend(); it++) {
     os << ", " << *it;
   }
-  return os << "]" << std::endl;
+  return os << "]";
 }
 
 #endif // DBG_CONTAINERS
@@ -153,13 +153,23 @@ std::ostream &operator<<(std::ostream &os, Container const &container) {
 
 // DBG
 #if defined(LOG) && defined(LOG_DBG)
+#ifdef DBG_CONTAINERS
 #define DBG(var)                                                               \
   if constexpr (!std::is_same_v<const char *, decltype(var)>) {                \
     using logh::operator<<;                                                    \
     std::cout << MAG "DBG: " CRESET #var " = " << var << std::endl;            \
   } else { /* if not variable */                                               \
+    using logh::operator<<;                                                    \
     std::cout << MAG "DBG: " CRESET << var << std::endl;                       \
   }
+#else // DBG_CONTAINERS
+#define DBG(var)                                                               \
+  if constexpr (!std::is_same_v<const char *, decltype(var)>) {                \
+    std::cout << MAG "DBG: " CRESET #var " = " << var << std::endl;            \
+  } else { /* if not variable */                                               \
+    std::cout << MAG "DBG: " CRESET << var << std::endl;                       \
+  }
+#endif // DBG_CONTAINERS
 #else
 #define DBG(var)
 #endif
