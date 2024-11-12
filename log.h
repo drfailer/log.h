@@ -155,7 +155,7 @@ std::ostream &operator<<(std::ostream &os, Container const &container) {
 #if defined(LOG) && defined(LOG_DBG)
 #ifdef DBG_CONTAINERS
 #define DBG(var)                                                               \
-  if constexpr (!std::is_same_v<const char *, decltype(var)>) {                \
+  if constexpr (!std::is_same_v<const char(&)[sizeof(var)], decltype(var)>) {  \
     using logh::operator<<;                                                    \
     std::cout << MAG "DBG: " CRESET #var " = " << var << std::endl;            \
   } else { /* if not variable */                                               \
@@ -164,7 +164,7 @@ std::ostream &operator<<(std::ostream &os, Container const &container) {
   }
 #else // DBG_CONTAINERS
 #define DBG(var)                                                               \
-  if constexpr (!std::is_same_v<const char *, decltype(var)>) {                \
+  if constexpr (!std::is_same_v<const char(&)[sizeof(var)], decltype(var)>) {  \
     std::cout << MAG "DBG: " CRESET #var " = " << var << std::endl;            \
   } else { /* if not variable */                                               \
     std::cout << MAG "DBG: " CRESET << var << std::endl;                       \
