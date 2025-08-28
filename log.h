@@ -10,6 +10,7 @@
 #define LOG_H
 #include <iostream>
 #include <sstream>
+#include <tuple>
 #include <type_traits>
 
 /* config *********************************************************************/
@@ -23,10 +24,6 @@
 #define LOG_ERR stderr
 #define LOG_TODO stderr
 #define LOG_DBG stderr
-
-// if defined, the log module will contain functions to print containers
-// (requires C++20 and usable only with the DBG macro)
-#define DBG_CONTAINERS
 
 namespace logh {
 
@@ -49,18 +46,12 @@ enum class IG : int {
 #define MAG "\033[0;35m"
 #define CRESET "\033[0m"
 
-#ifdef DBG_CONTAINERS
-#include <tuple> // required for std::get
-#endif
-
 namespace logh {
 
 template <typename... Types>
 constexpr bool is_info_group_active(IG group, Types... active_groups) {
     return ((group == active_groups) || ...);
 }
-
-#ifdef DBG_CONTAINERS
 
 template <typename T> struct clear {
     using type = std::remove_const_t<std::remove_reference_t<T>>;
@@ -118,23 +109,17 @@ std::string stringify_iterable(Iterable const &iterable) {
     return os.str();
 }
 
-#endif // DBG_CONTAINERS
-
 template <typename T> std::string stringify(T arg) {
     std::ostringstream oss;
 
     if constexpr (requires { oss << arg; }) {
         oss << arg;
+    } else if constexpr (Iterable<T>) {
+        return stringify_iterable(arg);
+    } else if constexpr (TupleLike<T>) {
+        return stringify_tuple(arg);
     } else {
-#ifdef DBG_CONTAINERS
-        if constexpr (Iterable<T>) {
-            return stringify_iterable(arg);
-        } else if constexpr (TupleLike<T>) {
-            return stringify_tuple(arg);
-        }
-#else
         oss << "<" << typeid(arg).name() << ">";
-#endif
     }
     return oss.str();
 }
@@ -157,7 +142,7 @@ void infog(IG group, std::string const &group_name, Types... msg) {
     }
 #endif
 }
-#define INFOG(group, ...) logh::infog(logh::IG:: group, #group, __VA_ARGS__)
+#define INFOG(group, ...) logh::infog(logh::IG::group, #group, __VA_ARGS__)
 
 template <typename... Types> void info(Types... msg) {
 #if defined(LOG_INFO)
