@@ -17,7 +17,7 @@ INFO_GRP("info group message", 1)
 // print variables
 int i = 4;
 INFO(i); // INFO: 4
-ERROR("i = " << i); // ERROR: i = 4
+ERROR("i = ", i); // ERROR: i = 4
 DBG("hello") // DBG: hello
 DBG(i) // DBG: i = 4
 ```
